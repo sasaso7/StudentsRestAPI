@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="static/style.css">
+    <meta charset="UTF-8">
+    <title>OverviewStart</title>
+</head>
+<body>
+<div class="container-fluid">
+<form id="formtilstudent" style="width:60%; margin: 20px;">
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon1">Name</span>
+        </div>
+        <input type="text" class="form-control" aria-label="Name" aria-describedby="basic-addon1" id="name">
+    </div>
+    <br>
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon2">Email</span>
+        </div>
+        <input type="text" class="form-control" aria-label="Email" aria-describedby="basic-addon2" id="email">
+    </div>
+    <br>
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="choice">Supervisors</label>
+        </div>
+        <select id="choice"> <!--aendret efter aflevering grundet at der er noget galt med selecten -->
+            <option th:each="supervisor:${supervisorlist}" th:value="${supervisor.getId()}" th:text="${supervisor.getName()}"></option>
+        </select> <!--mistaenker at det er grundet at thymeleaf ikke fungerer så godt lige i den her situation -->
+        <button type="submit" class="btn btn-success" style="margin-left: 50px; width:20%;">ADD</button>
+    </div>
+</form>
+
+<script>
+    $(document).ready(function() {
+
+            //Funktion til at poste objektet til databsen
+        $("#formtilstudent").on('click', '.btn', function () {
+        $.ajax({
+            method: "POST",
+            url: 'http://localhost:9090/student/post',
+            data: {
+                name: $("#name").val(),
+                email: $("#email").val(),
+                supervisor: $("#choice").val()
+            }
+
+        }).done(function (data) {
+            console.log(data)
+
+        });
+    })
+
+                //Funktion til at slette
+           $("#studenttable").on('click', '.delete', function () {
+               // get the current row
+               var currentRow = $(this).closest("tr");
+
+               $.ajax({
+                   method: "DELETE",
+                   url: 'http://localhost:9090/student/post' + "/" + $(currentRow).find("td:eq(0) input").val()
+               }).done(function () {
+                   currentRow.remove()
+
+               });
+           });
+
+            //Funktion til at edit
+        $("#studenttable").on('click', '.edit', function () {
+
+            var currentRow = $(this).closest("tr");
+
+            $.ajax({
+                method: "PUT",
+                url: 'http://localhost:9090/student/post',
+                data: {
+                    id: $(currentRow).find('td:eq(0) input').val(),
+                    name: $(currentRow).find('td:eq(1) input').val(),
+                    email: $(currentRow).find('td:eq(2) input').val(),
+                    supervisor: $(currentRow).find('td:eq(3) select').val()
+                }
+
+            }).done(function (data) {
+                alert("SUCCESSFULL UPDATE")
+            });
+        })
+
+   })
+</script>
+
+
+<label for="studenttable">STUDENTS</label>
+<table id="studenttable" class="table">
+    <tr><th>ID</th><th>NAME</th><th>EMAIL</th><th>SUPERVISOR</th></tr>
+    <tr th:each="student : ${studentlist}">
+        <td id="id" class="font-weight-bolder font-italic">
+            <input th:value="${student.getId()}" type="text" readonly name="id"/>
+        </td>
+        <td class="font-weight-bolder font-italic">
+            <input th:value="${student.getName()}" type="text" name="name"/>
+        </td>
+        <td class="font-weight-bolder font-italic">
+            <input th:value="${student.getEmail()}" type="email" name="email"/>
+        </td>
+        <td class="font-weight-bolder font-italic">
+            <select id="whichone" name="supervisorchoice">
+                <option th:each="supervisor:${supervisorlist}" th:value="${supervisor.getId()}" th:text="${supervisor.getName()}" th:selected="${supervisor.getId() == student.getSupervisor()}"></option>
+            </select>
+        </td>
+        <td><button class="edit btn btn-outline-warning">EDIT</button><button class="delete btn btn-outline-danger">DELETE</button></td>
+
+    </tr>
+</table>
+
+<label for="supervisortable">SUPERVISORS</label>
+<table id="supervisortable" class="table">
+    <tr><th>ID</th><th>NAME</th><th>EMAIL</th></tr>
+    <tr th:each="supervisor : ${supervisorlist}">
+        <td class="font-weight-bolder font-italic" th:text="${supervisor.getId()}"></td>
+        <td class="font-weight-bolder font-italic" th:text="${supervisor.getName()}"></td>
+        <td class="font-weight-bolder font-italic" th:text="${supervisor.getEmail()}"></td>
+
+    </tr>
+</table>
+</div>
+</body>
+</html>
